@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Il Filo dell'Attenzione</title>
+<style>
+:root{
+  --bg-page:#F7F5F0;--bg-surface:#FFFFFF;--ink-primary:#18181B;--ink-muted:#52525B;
+  --accent-mid:#2563EB;--accent-high:#D97706;--border-subtle:#E4E4E7;
+  --sans:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  --serif:"Iowan Old Style","Palatino Linotype",Georgia,serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg-page);color:var(--ink-primary);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1120px;margin:0 auto;padding:clamp(20px,4vw,48px) clamp(16px,4vw,32px) 56px}
+h1{font-family:var(--serif);font-weight:700;font-size:clamp(2rem,1.4rem + 3vw,3.4rem);letter-spacing:-.02em;line-height:1.05;margin:0 0 12px}
+header p{margin:0;max-width:56ch;color:var(--ink-muted);font-size:clamp(1rem,.95rem + .3vw,1.15rem)}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:28px 0 12px}
+.pill{font:600 .9rem var(--sans);min-height:44px;padding:.5rem 1.05rem;border:1px solid var(--border-subtle);background:var(--bg-surface);color:var(--ink-primary);border-radius:999px;cursor:pointer;transition:background-color .2s,color .2s,border-color .2s}
+.pill:hover{border-color:var(--ink-muted)}
+.pill[aria-pressed="true"]{background:var(--ink-primary);border-color:var(--ink-primary);color:var(--bg-surface)}
+.pill:focus-visible,.w:focus-visible{outline:3px solid var(--accent-mid);outline-offset:2px}
+.hint{margin:0 0 20px;color:var(--ink-muted);font-size:.95rem;max-width:70ch}
+.hint strong{color:var(--ink-primary)}
+.layout{display:grid;gap:20px;grid-template-columns:minmax(0,1fr)}
+@media(min-width:960px){.layout{grid-template-columns:minmax(0,1fr) 340px}.panel{position:sticky;top:16px;align-self:start}}
+.card{background:var(--bg-surface);border:1px solid var(--border-subtle);border-radius:16px;padding:clamp(16px,3vw,28px)}
+.stage{position:relative;padding:104px 0 12px;touch-action:manipulation}
+@media(max-width:600px){.stage{padding-top:88px}}
+#svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:2}
+#svg g{transition:color .3s}
+#svg g.hi{color:var(--accent-high)}
+#svg g.mid{color:var(--accent-mid)}
+.arc{fill:none;stroke:currentColor;stroke-linecap:round}
+.dot{fill:currentColor}
+.bd rect{fill:var(--bg-surface);stroke:currentColor;stroke-width:1.5}
+.bd text{font:700 11.5px var(--mono);fill:var(--ink-primary);text-anchor:middle}
+.sentence{position:relative;z-index:1;margin:0;font-family:var(--serif);font-size:clamp(1.4rem,1.05rem + 1.6vw,2.2rem);line-height:2.5;-webkit-tap-highlight-color:transparent}
+.w{display:inline-block;line-height:1.3;padding:.08em .16em;border-radius:6px;cursor:pointer;user-select:none;-webkit-user-select:none;transition:background-color .2s,color .2s,box-shadow .2s}
+.w.dim{color:var(--ink-muted)}
+.w.src{background:var(--ink-primary);color:var(--bg-surface)}
+.w.mid{background:rgba(37,99,235,.1);box-shadow:inset 0 -3px 0 var(--accent-mid)}
+.w.hi{background:rgba(217,119,6,.14);box-shadow:inset 0 -3px 0 var(--accent-high)}
+.w.slot{text-decoration:underline dotted;text-decoration-thickness:2px;text-underline-offset:.25em}
+.opts{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:8px;padding-top:18px;border-top:1px solid var(--border-subtle)}
+.opts span{font-size:.85rem;font-weight:600;color:var(--ink-muted);letter-spacing:.02em;margin-right:4px}
+.opts .pill{font:400 1.05rem var(--serif)}
+.opts .pill[aria-pressed="true"]{color:var(--bg-surface)}
+.legend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:16px 0 0;font-size:.8rem;color:var(--ink-muted)}
+.sw{display:inline-block;width:22px;height:4px;border-radius:4px;margin-right:6px;vertical-align:middle}
+.sw.m{background:var(--accent-mid);height:2px}
+.sw.h{background:var(--accent-high);height:5px}
+.panel h2{margin:0 0 6px;font:600 .75rem var(--sans);letter-spacing:.12em;text-transform:uppercase;color:var(--ink-muted)}
+.pword{margin:0;font-family:var(--serif);font-size:2rem;line-height:1.15;overflow-wrap:anywhere}
+.pvar{margin:4px 0 0;font-size:.85rem;color:var(--ink-muted)}
+.links{list-style:none;margin:18px 0 8px;padding:0;display:grid;gap:10px;min-height:20px}
+.links li{display:grid;grid-template-columns:minmax(4.5rem,auto) 1fr 3.2rem;align-items:center;gap:10px;font-family:var(--serif);font-size:1.05rem}
+.bar{height:8px;background:var(--border-subtle);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:99px}
+.mid .bar i{background:var(--accent-mid)}
+.hi .bar i{background:var(--accent-high)}
+.links b{font:600 .9rem var(--mono);text-align:right}
+.rest{margin:0 0 16px;font-size:.8rem;color:var(--ink-muted)}
+.why{margin:0 0 16px;font-size:.98rem}
+.amb{margin:0;padding-top:14px;border-top:1px solid var(--border-subtle);font-size:.85rem;color:var(--ink-muted)}
+.amb em{display:block;margin-top:2px;font-family:var(--serif);font-size:1rem;color:var(--ink-primary)}
+footer{margin-top:52px;padding-top:32px;border-top:1px solid var(--border-subtle);text-align:center}
+blockquote{margin:0 auto;max-width:36ch;font-family:var(--serif);font-style:italic;font-size:clamp(1.3rem,1rem + 1.4vw,1.9rem);line-height:1.35}
+blockquote::before{content:"\201C";display:block;font-size:3rem;line-height:.6;color:var(--accent-high);margin-bottom:6px}
+footer small{display:block;margin:20px auto 0;max-width:60ch;color:var(--ink-muted);font-size:.8rem}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Il Filo dell'Attenzione</h1>
+    <p>Passa sulle parole o cambia una sfumatura e osserva come l'AI pesa i legami nella frase.</p>
+  </header>
+  <nav class="tabs" id="tabs" aria-label="Scenari"></nav>
+  <p class="hint"><strong id="tag"></strong> — <span id="hint"></span></p>
+  <main class="layout">
+    <section class="card" aria-label="Frase interattiva">
+      <div class="stage" id="stage">
+        <svg id="svg" aria-hidden="true"></svg>
+        <p class="sentence" id="sentence"></p>
+      </div>
+      <div class="opts" id="opts" role="group" aria-label="Cambia una sfumatura"></div>
+      <p class="legend">
+        <span><i class="sw m"></i>Legame medio 15–49%</span>
+        <span><i class="sw h"></i>Legame dominante ≥ 50%</span>
+        <span>Spessore e opacità crescono con il peso.</span>
+      </p>
+    </section>
+    <aside class="card panel" aria-live="polite" aria-label="Pannello di lettura cognitiva">
+      <h2>Lettura cognitiva</h2>
+      <p class="pword" id="pw"></p>
+      <p class="pvar" id="pvar"></p>
+      <ul class="links" id="plinks"></ul>
+      <p class="rest" id="prest"></p>
+      <p class="why" id="pwhy"></p>
+      <p class="amb">Ambiguità in gioco<em id="pamb"></em></p>
+    </aside>
+  </main>
+  <footer>
+    <blockquote>Se il senso di una parola nasce dal dialogo con le altre, quanto conta davvero il contesto in cui mettiamo le cose?</blockquote>
+    <small>I pesi mostrati sono illustrativi e semplificati: un vero Transformer calcola molte teste di attenzione, su più livelli.</small>
+  </footer>
+</div>
+<script>
+const SCENARIOS=[
+{
+  tab:'Risoluzione anaforica',tag:'Schemi Winograd',
+  text:'Il topo scappò dal gatto perché era troppo {} per correre ancora.',
+  options:['stanco','affamato','veloce'],pick:'era',
+  hint:'Seleziona «era»: a chi si riferisce? Poi cambia l’aggettivo e guarda l’attenzione spostarsi.',
+  amb:'Chi è il soggetto sottinteso di «era»: il topo o il gatto?',
+  base:{
+    il:{topo:56},topo:{scappò:52,il:20},scappò:{topo:46,gatto:24,dal:16},dal:{gatto:58,scappò:20},
+    gatto:{dal:34,scappò:30,topo:16},perché:{scappò:44,era:28},troppo:{$:70},
+    per:{correre:48,$:22},correre:{per:30,scappò:28,$:20},ancora:{correre:62,per:16}
+  },
+  variants:{
+    stanco:{w:{era:{topo:64,$:18},$:{topo:38,era:30,troppo:20}},why:{
+      era:'«era» non dice chi sia il soggetto: il modello lo deduce dal contesto. Chi scappa si affatica, quindi «stanco» rafforza il legame con «topo». Il gatto, che insegue, resta in secondo piano.',
+      $:'«stanco» cerca a chi attribuire la stanchezza: il candidato più plausibile è «topo», che corre in fuga. «troppo» ne modula l’intensità.'}},
+    affamato:{w:{era:{gatto:61,$:19},$:{gatto:42,era:28,troppo:16}},why:{
+      era:'Con «affamato» il modello cerca chi ha un motivo per inseguire: il gatto, spinto dalla fame. L’attenzione di «era» scivola da «topo» a «gatto»: stesso pronome, referente diverso.',
+      $:'«affamato» si lega a chi ha un bisogno da soddisfare. La fame è il movente tipico del predatore, perciò il peso va a «gatto».'}},
+    veloce:{w:{era:{topo:40,gatto:38},$:{topo:33,gatto:31,era:20}},why:{
+      era:'Con «veloce» la frase diventa ambigua: la velocità spiega sia la fuga del topo sia l’inseguimento del gatto. Il peso si divide quasi a metà e il modello non trova un referente netto.',
+      $:'«veloce» è compatibile con entrambi gli animali, quindi l’attenzione si spartisce tra «topo» e «gatto» senza scegliere.'}}
+  }
+},
+{
+  tab:'Disambiguazione lessicale',tag:'Polisemia',
+  text:'La vecchia {} aprì il baule ma il segreto restò chiuso.',
+  options:['chiave','melodia','domanda'],pick:'aprì',
+  hint:'Seleziona «aprì»: che cosa apre davvero? Sostituisci il sostantivo e il verbo cambia compagnia.',
+  amb:'Il sostantivo è uno strumento fisico o un’idea? Il senso dipende dalle parole attorno.',
+  base:{
+    la:{vecchia:28,$:44},vecchia:{$:68},ma:{aprì:34,restò:30},restò:{segreto:52,chiuso:24},
+    chiuso:{segreto:50,restò:24},baule:{aprì:52}
+  },
+  variants:{
+    chiave:{w:{aprì:{$:54,baule:28},$:{aprì:42,baule:26,vecchia:16},segreto:{chiuso:44,baule:22,$:16},baule:{aprì:36,$:30},chiuso:{segreto:42,baule:24,restò:18}},why:{
+      aprì:'«aprì» cerca un soggetto capace di aprire: la «chiave» è lo strumento fisico perfetto e il «baule» l’oggetto aperto. Qui il significato è letterale: serratura, metallo, gesto.',
+      $:'«chiave» è ambigua: può essere oggetto, soluzione o tonalità musicale. Il verbo «aprì» e il «baule» la ancorano al senso concreto di strumento che apre.',
+      segreto:'Con la chiave fisica il «segreto» è un contenuto custodito: si lega a «chiuso» e al «baule» che lo contiene.'}},
+    melodia:{w:{aprì:{$:33,segreto:26,baule:18},$:{segreto:34,aprì:26,vecchia:20},segreto:{$:41,chiuso:25,aprì:16}},why:{
+      aprì:'Una melodia non ha serratura: «aprì» diventa metaforico. Il verbo resta legato al «baule», ma guarda anche a «segreto», ciò che la musica può dischiudere dentro di noi.',
+      $:'«melodia» attiva il campo emotivo e della memoria. Si lega a «segreto» più che al «baule», e «vecchia» suona come «ricordo lontano».',
+      segreto:'Il segreto diventa un vissuto interiore: l’attenzione va soprattutto a «melodia», che prova a raggiungerlo.'}},
+    domanda:{w:{aprì:{$:38,segreto:30,baule:16},$:{segreto:52,aprì:22},segreto:{$:50,chiuso:20}},why:{
+      aprì:'Una domanda può aprire una discussione, non un baule: il senso diventa cognitivo. «aprì» guarda a «domanda» ma resta tirato verso «segreto», che dà la posta in gioco.',
+      $:'«domanda» è un atto di parola che punta a ottenere qualcosa. Il legame più forte è con «segreto», ciò che si vuole far emergere.',
+      segreto:'Il segreto è ciò che la domanda tenta di scoprire: il peso verso «domanda» supera quello verso «chiuso».'}}
+  }
+},
+{
+  tab:'Dipendenza a distanza',tag:'Dipendenza sintattica',
+  text:'Il libro che gli autori hanno {} insieme dopo anni di silenzio divenne celebre.',
+  options:['scritto','rifiutato','nascosto'],pick:'divenne',
+  hint:'Seleziona «divenne»: salta oltre «autori», «anni» e «silenzio» per raggiungere il suo soggetto.',
+  amb:'«divenne» si aggancia ai sostantivi vicini o al «libro», lontano ma sintatticamente giusto?',
+  base:{
+    il:{libro:60},libro:{divenne:36,che:22,il:20},che:{libro:64,$:16},gli:{autori:56},
+    autori:{$:36,hanno:30,gli:18},hanno:{autori:42,$:38},insieme:{$:48,autori:22},dopo:{anni:42,$:26},
+    anni:{silenzio:34,dopo:30,di:20},di:{silenzio:46,anni:34},silenzio:{di:30,anni:28,dopo:18},celebre:{divenne:50,libro:30}
+  },
+  variants:{
+    scritto:{w:{divenne:{libro:58,celebre:22},$:{autori:34,hanno:32,libro:20}},why:{
+      divenne:'Il verbo principale ignora i vicini «anni» e «silenzio» e salta fino a «libro», il suo vero soggetto: la sintassi pesa più della prossimità. Con «scritto» il successo è la conseguenza naturale di un’opera compiuta.',
+      $:'«scritto» chiude la relativa: guarda a «autori» e «hanno», che formano il verbo composto, e rimanda al «libro» come oggetto scritto.'}},
+    rifiutato:{w:{divenne:{libro:52,$:24,celebre:16},$:{libro:32,autori:28,hanno:20},celebre:{divenne:42,libro:26,$:18}},why:{
+      divenne:'Il soggetto resta «libro», ma ora «rifiutato» attira attenzione: «divenne celebre» suona come un ribaltamento. Il verbo tiene insieme il legame a distanza e il contrasto ironico.',
+      $:'«rifiutato» riguarda ciò che è stato respinto: il peso va a «libro» e agli «autori» che compiono o subiscono l’azione.'}},
+    nascosto:{w:{divenne:{libro:47,$:26,celebre:17},$:{libro:34,autori:26,hanno:20},celebre:{divenne:40,libro:28,$:17}},why:{
+      divenne:'«nascosto» evoca un’opera tenuta lontana dagli occhi: «divenne celebre» diventa una scoperta tardiva. L’aggancio a «libro» regge, ma «nascosto» porta un tono di segreto e riscatto.',
+      $:'«nascosto» riguarda un oggetto tenuto fuori vista: l’attenzione va a «libro» e agli «autori» che lo hanno celato.'}}
+  }
+}
+];
+
+const NS='http://www.w3.org/2000/svg',$=s=>document.querySelector(s);
+const stage=$('#stage'),svg=$('#svg'),sent=$('#sentence'),tabs=$('#tabs'),opts=$('#opts');
+const calm=matchMedia('(prefers-reduced-motion: reduce)').matches;
+const S={sc:0,opt:'',sel:0,hov:null},arcs=new Map();
+let toks=[],words=[],ix={},slot=0,raf=0,t0=0,dur=0,size='';
+const cur=()=>SCENARIOS[S.sc],key=t=>t.slot?'$':t.w.toLowerCase();
+const at=(e,o)=>{for(const k in o)e.setAttribute(k,o[k])};
+const el=(t,c,p)=>{const e=document.createElementNS(NS,t);if(c)e.setAttribute('class',c);p.append(e);return e};
+const btn=(txt,fn)=>{const b=document.createElement('button');b.className='pill';b.textContent=txt;b.onclick=fn;return b};
+
+function links(i){
+  const sc=cur(),k=key(toks[i]),r=sc.variants[S.opt].w?.[k]??sc.base[k];
+  const L=r?Object.entries(r).map(([w,p])=>({i:ix[w],p})).filter(l=>l.i!==undefined)
+           :[{i:i+1,p:55},{i:i-1,p:20}].filter(l=>toks[l.i]);
+  return L.filter(l=>l.p>=15).sort((a,b)=>b.p-a.p).slice(0,3);
+}
+const gen=(w,L)=>L.length
+  ?`«${w}» si appoggia soprattutto a ${L.map(l=>`«${toks[l.i].w}»`).join(' e ')}: sono le parole da cui dipende o che ne precisano il ruolo nella frase.`
+  :`Per «${w}» l’attenzione resta diffusa: nessun legame supera il 15%.`;
+
+function geo(a,L){
+  const sr=stage.getBoundingClientRect(),placed=[];
+  const R=i=>{const r=words[i].getBoundingClientRect();return{x:r.left-sr.left+r.width/2,t:r.top-sr.top,b:r.bottom-sr.top,h:r.height}};
+  const s=R(a);
+  return L.map((l,n)=>{
+    const t=R(l.i),same=Math.abs(t.t-s.t)<s.h*.6,x0=s.x,x1=t.x;
+    let y0,y1,c1,c2;
+    if(same){
+      const h=Math.min(34+Math.abs(x1-x0)*.28,100)+n*6;
+      y0=s.t-3;y1=t.t-3;c1=[x0,y0-h];c2=[x1,y1-h];
+    }else{
+      const dn=t.t>s.t;
+      y0=dn?s.b+3:s.t-3;y1=dn?t.t-3:t.b+3;
+      const h=Math.max(30,Math.abs(y1-y0)*.5);
+      c1=[x0,y0+(dn?h:-h)];c2=[x1,y1+(dn?-h:h)];
+    }
+    const P=u=>{const v=1-u,f=(p,q,r,z)=>v*v*v*p+3*v*v*u*q+3*v*u*u*r+u**3*z;return[f(x0,c1[0],c2[0],x1),f(y0,c1[1],c2[1],y1)]};
+    let b;
+    for(const u of[.5,.4,.6,.3,.7,.2,.8]){
+      b=P(u);
+      if(!placed.some(q=>Math.abs(q[0]-b[0])<48&&Math.abs(q[1]-b[1])<24))break;
+    }
+    placed.push(b);
+    const k=Math.max(0,Math.min(1,(l.p-15)/55));
+    return{key:a+'>'+l.i,p:l.p,g:[x0,y0,c1[0],c1[1],c2[0],c2[1],x1,y1,1+5*k,.2+.75*k,b[0],b[1]]};
+  });
+}
+
+function mk(){
+  const g=el('g',0,svg),path=el('path','arc',g),dot=el('circle','dot',g),bd=el('g','bd',g),rect=el('rect',0,bd),txt=el('text',0,bd);
+  at(rect,{x:-21,y:-10,width:42,height:20,rx:10});at(txt,{dy:'.35em'});
+  return{g,path,dot,bd,txt};
+}
+function paint(c){
+  const[a,b,p,q,r,s,x,y,w,o,lx,ly]=c.cur;
+  at(c.path,{d:`M${a} ${b}C${p} ${q} ${r} ${s} ${x} ${y}`,'stroke-width':w,opacity:o});
+  at(c.dot,{cx:x,cy:y,r:w/2+1.5,opacity:o});
+  at(c.bd,{transform:`translate(${lx} ${ly})`,opacity:Math.min(1,o*4)});
+}
+function tick(now){
+  const k=dur?Math.min(1,(now-t0)/dur):1,e=1-Math.pow(1-k,3);
+  arcs.forEach((c,id)=>{
+    c.cur=c.from.map((f,i)=>f+(c.to[i]-f)*e);paint(c);
+    if(k===1&&c.dead){c.g.remove();arcs.delete(id)}
+  });
+  if(k<1)raf=requestAnimationFrame(tick);
+}
+function draw(a,L,instant){
+  const T=geo(a,L),keep=new Set(T.map(t=>t.key));
+  T.forEach(t=>{
+    let c=arcs.get(t.key);
+    if(!c){c=mk();const[x,y]=t.g;c.cur=[x,y,x,y,x,y,x,y,1,0,x,y];arcs.set(t.key,c)}
+    c.to=t.g;c.dead=false;
+    c.g.setAttribute('class',t.p>=50?'hi':'mid');c.txt.textContent=t.p+'%';
+  });
+  arcs.forEach((c,id)=>{if(!keep.has(id)){c.to=[...c.cur];c.to[9]=0;c.dead=true}});
+  arcs.forEach(c=>c.from=[...c.cur]);
+  cancelAnimationFrame(raf);t0=performance.now();dur=instant||calm?0:440;tick(t0);
+}
+
+function readout(a,L){
+  const t=toks[a],v=cur().variants[S.opt];
+  $('#pw').textContent='«'+t.w+'»';
+  $('#pvar').textContent='Sfumatura attiva: «'+S.opt+'»';
+  $('#plinks').innerHTML=L.map(l=>`<li class="${l.p>=50?'hi':'mid'}"><span>${toks[l.i].w}</span><span class="bar"><i style="width:${l.p}%"></i></span><b>${l.p}%</b></li>`).join('');
+  const sum=L.reduce((s,l)=>s+l.p,0);
+  $('#prest').textContent=L.length?`Il restante ${100-sum}% è diffuso su legami sotto il 15%.`:'Nessun legame supera il 15%: l’attenzione è diffusa.';
+  $('#pwhy').textContent=v.why?.[key(t)]??gen(t.w,L);
+  $('#pamb').textContent=cur().amb;
+}
+
+function update(instant){
+  const a=S.hov??S.sel,L=links(a),tm=new Map(L.map(l=>[l.i,l.p]));
+  words.forEach((w,i)=>{
+    const p=tm.get(i);
+    w.className='w'+(toks[i].slot?' slot':'')+(i===a?' src':p?(p>=50?' hi':' mid'):' dim');
+    w.setAttribute('aria-pressed',i===S.sel);
+  });
+  readout(a,L);draw(a,L,instant);
+  size=stage.offsetWidth+'x'+stage.offsetHeight;
+}
+
+function setOpt(o){
+  S.opt=o;toks[slot].w=o;words[slot].textContent=o;
+  [...opts.querySelectorAll('button')].forEach(b=>b.setAttribute('aria-pressed',b.textContent===o));
+  update();
+}
+
+function load(n){
+  const sc=SCENARIOS[n];
+  S.sc=n;S.opt=sc.options[0];S.hov=null;
+  toks=sc.text.split(' ').map(t=>{const m=t.match(/^(.*?)([.,;:!?]*)$/),s=m[1]==='{}';return{w:s?S.opt:m[1],p:m[2],slot:s}});
+  slot=toks.findIndex(t=>t.slot);
+  ix={};toks.forEach((t,i)=>{const k=key(t);if(!(k in ix))ix[k]=i});
+  S.sel=ix[sc.pick];
+  sent.textContent='';
+  words=toks.map((t,i)=>{
+    const w=document.createElement('span');
+    w.tabIndex=0;w.dataset.i=i;w.setAttribute('role','button');w.textContent=t.w;
+    sent.append(w,t.p,' ');return w;
+  });
+  [...tabs.children].forEach((b,i)=>b.setAttribute('aria-pressed',i===n));
+  opts.textContent='';
+  const lb=document.createElement('span');lb.textContent='Cambia una sfumatura';opts.append(lb);
+  sc.options.forEach(o=>opts.append(btn(o,()=>setOpt(o))));
+  $('#tag').textContent=sc.tag;$('#hint').textContent=sc.hint;
+  arcs.forEach(c=>c.g.remove());arcs.clear();
+  setOpt(S.opt);
+}
+
+SCENARIOS.forEach((s,i)=>tabs.append(btn(s.tab,()=>load(i))));
+
+sent.addEventListener('pointerover',e=>{
+  if(e.pointerType!=='mouse')return;
+  const w=e.target.closest('.w');
+  if(w&&S.hov!==+w.dataset.i){S.hov=+w.dataset.i;update()}
+});
+sent.addEventListener('pointerleave',()=>{if(S.hov!==null){S.hov=null;update()}});
+sent.addEventListener('click',e=>{
+  const w=e.target.closest('.w');
+  if(w){S.sel=+w.dataset.i;update()}
+});
+sent.addEventListener('focusin',e=>{
+  const w=e.target.closest('.w');
+  if(w&&S.hov!==+w.dataset.i){S.hov=+w.dataset.i;update()}
+});
+sent.addEventListener('focusout',e=>{
+  if(!sent.contains(e.relatedTarget)&&S.hov!==null){S.hov=null;update()}
+});
+sent.addEventListener('keydown',e=>{
+  const i=+e.target.dataset.i,d={ArrowRight:1,ArrowLeft:-1}[e.key];
+  if(d){words[i+d]?.focus();e.preventDefault()}
+  else if(e.key==='Enter'||e.key===' '){S.sel=i;update();e.preventDefault()}
+  else if(e.key==='Escape'){S.sel=ix[cur().pick];update()}
+});
+
+new ResizeObserver(()=>{
+  if(stage.offsetWidth+'x'+stage.offsetHeight!==size)update(true);
+}).observe(stage);
+document.fonts?.ready.then(()=>update(true));
+
+load(0);
+</script>
+</body>
+</html>
